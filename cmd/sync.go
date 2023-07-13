@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/kong/deck/cprint"
 	"github.com/spf13/cobra"
 )
 
@@ -13,20 +14,33 @@ var (
 	syncJSONOutput       bool
 )
 
+var syncCmdKongStateFile []string
+
+func executeSync(cmd *cobra.Command, _ []string) error {
+	return syncMain(cmd.Context(), syncCmdKongStateFile, false,
+		syncCmdParallelism, syncCmdDBUpdateDelay, syncWorkspace, syncJSONOutput)
+}
+
 // newSyncCmd represents the sync command
-func newSyncCmd() *cobra.Command {
-	var syncCmdKongStateFile []string
+func newSyncCmd(deprecated bool) *cobra.Command {
+	short := "Sync performs operations to get Kong's configuration to match the state file"
+	execute := executeSync
+	if deprecated {
+		short = "[deprecated] use 'kong sync' instead"
+		execute = func(cmd *cobra.Command, args []string) error {
+			cprint.UpdatePrintf("Warning: 'deck sync' is DEPRECATED and will be removed in a future version. " +
+				"Use 'deck kong sync' instead.\n")
+			return executeSync(cmd, args)
+		}
+	}
+
 	syncCmd := &cobra.Command{
-		Use: "sync",
-		Short: "Sync performs operations to get Kong's configuration " +
-			"to match the state file",
+		Use:   "sync",
+		Short: short,
 		Long: `The sync command reads the state file and performs operation on Kong
 to get Kong's state in sync with the input state.`,
 		Args: validateNoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return syncMain(cmd.Context(), syncCmdKongStateFile, false,
-				syncCmdParallelism, syncCmdDBUpdateDelay, syncWorkspace, syncJSONOutput)
-		},
+		RunE: execute,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(syncCmdKongStateFile) == 0 {
 				return fmt.Errorf("a state file with Kong's configuration " +

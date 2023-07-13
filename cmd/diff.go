@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/kong/deck/cprint"
 	"github.com/spf13/cobra"
 )
 
@@ -14,11 +15,27 @@ var (
 	diffJSONOutput         bool
 )
 
+func executeDiff(cmd *cobra.Command, _ []string) error {
+	return syncMain(cmd.Context(), diffCmdKongStateFile, true,
+		diffCmdParallelism, 0, diffWorkspace, diffJSONOutput)
+}
+
 // newDiffCmd represents the diff command
-func newDiffCmd() *cobra.Command {
+func newDiffCmd(deprecated bool) *cobra.Command {
+	short := "Diff the current entities in Kong with the one on disks"
+	execute := executeDiff
+	if deprecated {
+		short = "[deprecated] use 'kong diff' instead"
+		execute = func(cmd *cobra.Command, args []string) error {
+			cprint.UpdatePrintf("Warning: 'deck diff' is DEPRECATED and will be removed in a future version. " +
+				"Use 'deck kong diff' instead.\n")
+			return executeDiff(cmd, args)
+		}
+	}
+
 	diffCmd := &cobra.Command{
 		Use:   "diff",
-		Short: "Diff the current entities in Kong with the one on disks",
+		Short: short,
 		Long: `The diff command is similar to a dry run of the 'decK sync' command.
 
 It loads entities from Kong and performs a diff with
@@ -26,10 +43,7 @@ the entities in local files. This allows you to see the entities
 that will be created, updated, or deleted.
 `,
 		Args: validateNoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return syncMain(cmd.Context(), diffCmdKongStateFile, true,
-				diffCmdParallelism, 0, diffWorkspace, diffJSONOutput)
-		},
+		RunE: execute,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(diffCmdKongStateFile) == 0 {
 				return fmt.Errorf("a state file with Kong's configuration " +

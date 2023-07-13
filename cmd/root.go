@@ -204,18 +204,28 @@ It can be used to export, import, or sync entities to Kong.`,
 	viper.BindPFlag("konnect-runtime-group-name",
 		rootCmd.PersistentFlags().Lookup("konnect-runtime-group-name"))
 
-	rootCmd.AddCommand(newSyncCmd())
 	rootCmd.AddCommand(newVersionCmd())
-	rootCmd.AddCommand(newValidateCmd())
-	rootCmd.AddCommand(newResetCmd())
-	rootCmd.AddCommand(newPingCmd())
-	rootCmd.AddCommand(newDumpCmd())
-	rootCmd.AddCommand(newDiffCmd())
-	rootCmd.AddCommand(newConvertCmd())
 	rootCmd.AddCommand(newCompletionCmd())
-	rootCmd.AddCommand(newKonnectCmd())
+	rootCmd.AddCommand(newSyncCmd(true))     // deprecated, to exist under the `kong` subcommand only
+	rootCmd.AddCommand(newValidateCmd(true)) // deprecated, to exist under both `kong` and `file` subcommands
+	rootCmd.AddCommand(newResetCmd(true))    // deprecated, to exist under the `kong` subcommand only
+	rootCmd.AddCommand(newPingCmd(true))     // deprecated, to exist under the `kong` subcommand only
+	rootCmd.AddCommand(newDumpCmd(true))     // deprecated, to exist under the `kong` subcommand only
+	rootCmd.AddCommand(newDiffCmd(true))     // deprecated, to exist under the `kong` subcommand only
+	rootCmd.AddCommand(newConvertCmd(true))  // deprecated, to exist under the `file` subcommand only
+	rootCmd.AddCommand(newKonnectCmd())      // deprecated, to be removed
 	{
-		fileCmd := newAddFileCmd()
+		kongCmd := newKongSubCmd()
+		rootCmd.AddCommand(kongCmd)
+		kongCmd.AddCommand(newSyncCmd(false))
+		kongCmd.AddCommand(newValidateCmd(false))
+		kongCmd.AddCommand(newResetCmd(false))
+		kongCmd.AddCommand(newPingCmd(false))
+		kongCmd.AddCommand(newDumpCmd(false))
+		kongCmd.AddCommand(newDiffCmd(false))
+	}
+	{
+		fileCmd := newFileSubCmd()
 		rootCmd.AddCommand(fileCmd)
 		fileCmd.AddCommand(newAddPluginsCmd())
 		fileCmd.AddCommand(newAddTagsCmd())
@@ -225,6 +235,8 @@ It can be used to export, import, or sync entities to Kong.`,
 		fileCmd.AddCommand(newPatchCmd())
 		fileCmd.AddCommand(newOpenapi2KongCmd())
 		fileCmd.AddCommand(newFileRenderCmd())
+		fileCmd.AddCommand(newConvertCmd(false))
+		fileCmd.AddCommand(newValidateCmd(false)) // alias; since this does both file+online
 	}
 	return rootCmd
 }

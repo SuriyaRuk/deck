@@ -81,9 +81,17 @@ func executeConvert(_ *cobra.Command, _ []string) error {
 }
 
 // newConvertCmd represents the convert command
-func newConvertCmd() *cobra.Command {
+func newConvertCmd(deprecated bool) *cobra.Command {
 	short := "Convert files from one format into another format"
 	execute := executeConvert
+	if deprecated {
+		short = "[deprecated] use 'file convert' instead"
+		execute = func(cmd *cobra.Command, args []string) error {
+			cprint.UpdatePrintf("Warning: 'deck convert' is DEPRECATED and will be removed in a future version. " +
+				"Use 'deck file convert' instead.\n")
+			return executeConvert(cmd, args)
+		}
+	}
 
 	convertCmd := &cobra.Command{
 		Use:   "convert",

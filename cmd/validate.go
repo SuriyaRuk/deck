@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/kong/deck/cprint"
 	"github.com/kong/deck/dump"
 	"github.com/kong/deck/file"
 	"github.com/kong/deck/state"
@@ -22,11 +23,71 @@ var (
 	validateJSONOutput           bool
 )
 
+func executeValidate(cmd *cobra.Command, _ []string) error {
+	mode := getMode(nil)
+	if validateOnline && mode == modeKonnect {
+		return fmt.Errorf("online validation not yet supported in konnect mode")
+	}
+	_ = sendAnalytics("validate", "", mode)
+	// read target file
+	// this does json schema validation as well
+	targetContent, err := file.GetContentFromFiles(validateCmdKongStateFile, false)
+	if err != nil {
+		return err
+	}
+
+	dummyEmptyState, err := state.NewKongState()
+	if err != nil {
+		return err
+	}
+	ctx := cmd.Context()
+	var kongClient *kong.Client
+	if validateOnline {
+		kongClient, err = getKongClient(ctx, targetContent)
+		if err != nil {
+			return err
+		}
+	}
+
+	rawState, err := file.Get(ctx, targetContent, file.RenderConfig{
+		CurrentState: dummyEmptyState,
+	}, dump.Config{}, kongClient)
+	if err != nil {
+		return err
+	}
+	if err := checkForRBACResources(*rawState, validateCmdRBACResourcesOnly); err != nil {
+		return err
+	}
+	// this catches foreign relation errors
+	ks, err := state.Get(rawState)
+	if err != nil {
+		return err
+	}
+
+	if validateOnline {
+		if errs := validateWithKong(ctx, kongClient, ks); len(errs) != 0 {
+			return validate.ErrorsWrapper{Errors: errs}
+		}
+	}
+	return nil
+}
+
 // newValidateCmd represents the diff command
-func newValidateCmd() *cobra.Command {
+func newValidateCmd(deprecated bool) *cobra.Command {
+	short := "Validate the state file"
+	execute := executeValidate
+	if deprecated {
+		short = "[deprecated] use 'kong validate' instead"
+		execute = func(cmd *cobra.Command, args []string) error {
+			cprint.UpdatePrintf("Warning: 'deck validate' is DEPRECATED and will be removed in a future version. " +
+				"Use 'deck kong validate' instead.\n")
+			return executeValidate(cmd, args)
+		}
+	}
+
 	validateCmd := &cobra.Command{
 		Use:   "validate",
-		Short: "Validate the state file",
+		Short: short,
 		Long: `The validate command reads the state file and ensures validity.
 It reads all the specified state files and reports YAML/JSON
 parsing issues. It also checks for foreign relationships
@@ -36,54 +97,7 @@ No communication takes places between decK and Kong during the execution of
 this command unless --online flag is used.
 `,
 		Args: validateNoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			mode := getMode(nil)
-			if validateOnline && mode == modeKonnect {
-				return fmt.Errorf("online validation not yet supported in konnect mode")
-			}
-			_ = sendAnalytics("validate", "", mode)
-			// read target file
-			// this does json schema validation as well
-			targetContent, err := file.GetContentFromFiles(validateCmdKongStateFile, false)
-			if err != nil {
-				return err
-			}
-
-			dummyEmptyState, err := state.NewKongState()
-			if err != nil {
-				return err
-			}
-			ctx := cmd.Context()
-			var kongClient *kong.Client
-			if validateOnline {
-				kongClient, err = getKongClient(ctx, targetContent)
-				if err != nil {
-					return err
-				}
-			}
-
-			rawState, err := file.Get(ctx, targetContent, file.RenderConfig{
-				CurrentState: dummyEmptyState,
-			}, dump.Config{}, kongClient)
-			if err != nil {
-				return err
-			}
-			if err := checkForRBACResources(*rawState, validateCmdRBACResourcesOnly); err != nil {
-				return err
-			}
-			// this catches foreign relation errors
-			ks, err := state.Get(rawState)
-			if err != nil {
-				return err
-			}
-
-			if validateOnline {
-				if errs := validateWithKong(ctx, kongClient, ks); len(errs) != 0 {
-					return validate.ErrorsWrapper{Errors: errs}
-				}
-			}
-			return nil
-		},
+		RunE: execute,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(validateCmdKongStateFile) == 0 {
 				return fmt.Errorf("a state file with Kong's configuration " +
