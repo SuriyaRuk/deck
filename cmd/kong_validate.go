@@ -73,9 +73,15 @@ func executeValidate(cmd *cobra.Command, _ []string) error {
 }
 
 // newValidateCmd represents the diff command
-func newValidateCmd(deprecated bool) *cobra.Command {
+func newValidateCmd(deprecated bool, online bool) *cobra.Command {
 	use := "validate [flags] [kong-state-files...]"
 	short := "Validate the state file"
+	long := `The validate command reads the state file and ensures validity.
+It reads all the specified state files and reports YAML/JSON
+parsing issues. It also checks for foreign relationships
+and alerts if there are broken relationships, or missing links present.
+
+`
 	execute := executeValidate
 	argsValidator := cobra.MinimumNArgs(0)
 	preRun := func(cmd *cobra.Command, args []string) error {
@@ -89,6 +95,15 @@ func newValidateCmd(deprecated bool) *cobra.Command {
 	if deprecated {
 		use = "validate"
 		short = "[deprecated] use 'kong validate' instead"
+		long = `The validate command reads the state file and ensures validity.
+It reads all the specified state files and reports YAML/JSON
+parsing issues. It also checks for foreign relationships
+and alerts if there are broken relationships, or missing links present.
+
+No communication takes places between decK and Kong during the execution of
+this command unless --online flag is used.
+`
+
 		execute = func(cmd *cobra.Command, args []string) error {
 			cprint.UpdatePrintf("Warning: 'deck validate' is DEPRECATED and will be removed in a future version. " +
 				"Use 'deck kong validate' instead.\n")
@@ -102,19 +117,25 @@ func newValidateCmd(deprecated bool) *cobra.Command {
 			}
 			return preRunSilenceEventsFlag()
 		}
+	} else {
+		validateOnline = online
+		if validateOnline {
+			short = short + " (online)"
+			long = long + "Validates against the Kong API, via communication with Kong. This increases the\n" +
+				"time for validation but catches significant errors. No resource is created in Kong.\n" +
+				"For offline validation see 'deck file validate'.\n"
+		} else {
+			short = short + " (locally)"
+			long = long + "No communication takes places between decK and Kong during the execution of\n" +
+				"this command. This is faster than the online validation, but catches fewer errors.\n" +
+				"For online validation see 'deck kong validate'.\n"
+		}
 	}
 
 	validateCmd := &cobra.Command{
-		Use:   use,
-		Short: short,
-		Long: `The validate command reads the state file and ensures validity.
-It reads all the specified state files and reports YAML/JSON
-parsing issues. It also checks for foreign relationships
-and alerts if there are broken relationships, or missing links present.
-
-No communication takes places between decK and Kong during the execution of
-this command unless --online flag is used.
-`,
+		Use:     use,
+		Short:   short,
+		Long:    long,
 		Args:    argsValidator,
 		RunE:    execute,
 		PreRunE: preRun,
@@ -127,11 +148,11 @@ this command unless --online flag is used.
 			"state", "s", []string{"kong.yaml"}, "file(s) containing Kong's configuration.\n"+
 				"This flag can be specified multiple times for multiple files.\n"+
 				"Use '-' to read from stdin.")
+		validateCmd.Flags().BoolVar(&validateOnline, "online",
+			false, "perform validations against Kong API. When this flag is used, validation is done\n"+
+				"via communication with Kong. This increases the time for validation but catches \n"+
+				"significant errors. No resource is created in Kong.")
 	}
-	validateCmd.Flags().BoolVar(&validateOnline, "online",
-		false, "perform validations against Kong API. When this flag is used, validation is done\n"+
-			"via communication with Kong. This increases the time for validation but catches \n"+
-			"significant errors. No resource is created in Kong.")
 	validateCmd.Flags().StringVarP(&validateWorkspace, "workspace", "w",
 		"", "validate configuration of a specific workspace "+
 			"(Kong Enterprise only).\n"+

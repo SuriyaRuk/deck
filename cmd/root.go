@@ -206,19 +206,19 @@ It can be used to export, import, or sync entities to Kong.`,
 
 	rootCmd.AddCommand(newVersionCmd())
 	rootCmd.AddCommand(newCompletionCmd())
-	rootCmd.AddCommand(newSyncCmd(true))     // deprecated, to exist under the `kong` subcommand only
-	rootCmd.AddCommand(newValidateCmd(true)) // deprecated, to exist under both `kong` and `file` subcommands
-	rootCmd.AddCommand(newResetCmd(true))    // deprecated, to exist under the `kong` subcommand only
-	rootCmd.AddCommand(newPingCmd(true))     // deprecated, to exist under the `kong` subcommand only
-	rootCmd.AddCommand(newDumpCmd(true))     // deprecated, to exist under the `kong` subcommand only
-	rootCmd.AddCommand(newDiffCmd(true))     // deprecated, to exist under the `kong` subcommand only
-	rootCmd.AddCommand(newConvertCmd(true))  // deprecated, to exist under the `file` subcommand only
-	rootCmd.AddCommand(newKonnectCmd())      // deprecated, to be removed
+	rootCmd.AddCommand(newSyncCmd(true))            // deprecated, to exist under the `kong` subcommand only
+	rootCmd.AddCommand(newValidateCmd(true, false)) // deprecated, to exist under both `kong` and `file` subcommands
+	rootCmd.AddCommand(newResetCmd(true))           // deprecated, to exist under the `kong` subcommand only
+	rootCmd.AddCommand(newPingCmd(true))            // deprecated, to exist under the `kong` subcommand only
+	rootCmd.AddCommand(newDumpCmd(true))            // deprecated, to exist under the `kong` subcommand only
+	rootCmd.AddCommand(newDiffCmd(true))            // deprecated, to exist under the `kong` subcommand only
+	rootCmd.AddCommand(newConvertCmd(true))         // deprecated, to exist under the `file` subcommand only
+	rootCmd.AddCommand(newKonnectCmd())             // deprecated, to be removed
 	{
 		kongCmd := newKongSubCmd()
 		rootCmd.AddCommand(kongCmd)
 		kongCmd.AddCommand(newSyncCmd(false))
-		kongCmd.AddCommand(newValidateCmd(false))
+		kongCmd.AddCommand(newValidateCmd(false, true)) // online validation
 		kongCmd.AddCommand(newResetCmd(false))
 		kongCmd.AddCommand(newPingCmd(false))
 		kongCmd.AddCommand(newDumpCmd(false))
@@ -236,7 +236,7 @@ It can be used to export, import, or sync entities to Kong.`,
 		fileCmd.AddCommand(newOpenapi2KongCmd())
 		fileCmd.AddCommand(newFileRenderCmd())
 		fileCmd.AddCommand(newConvertCmd(false))
-		fileCmd.AddCommand(newValidateCmd(false)) // alias; since this does both file+online
+		fileCmd.AddCommand(newValidateCmd(false, false)) // file-based validation
 	}
 	return rootCmd
 }
