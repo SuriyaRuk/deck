@@ -143,6 +143,7 @@ func executeDump(cmd *cobra.Command, _ []string) error {
 func newDumpCmd(deprecated bool) *cobra.Command {
 	short := "Export Kong configuration to a file"
 	execute := executeDump
+	fileOutDefault := "-"
 	if deprecated {
 		short = "[deprecated] use 'kong dump' instead"
 		execute = func(cmd *cobra.Command, args []string) error {
@@ -150,6 +151,7 @@ func newDumpCmd(deprecated bool) *cobra.Command {
 				"Use 'deck kong dump' instead.\n")
 			return executeDump(cmd, args)
 		}
+		fileOutDefault = "kong"
 	}
 
 	dumpCmd := &cobra.Command{
@@ -165,7 +167,7 @@ configure Kong.`,
 	}
 
 	dumpCmd.Flags().StringVarP(&dumpCmdKongStateFile, "output-file", "o",
-		"kong", "file to which to write Kong's configuration."+
+		fileOutDefault, "file to which to write Kong's configuration."+
 			"Use `-` to write to stdout.")
 	dumpCmd.Flags().StringVar(&dumpCmdStateFormat, "format",
 		"yaml", "output file format: json or yaml.")

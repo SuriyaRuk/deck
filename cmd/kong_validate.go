@@ -74,19 +74,38 @@ func executeValidate(cmd *cobra.Command, _ []string) error {
 
 // newValidateCmd represents the diff command
 func newValidateCmd(deprecated bool) *cobra.Command {
+	use := "validate [flags] [kong-state-files...]"
 	short := "Validate the state file"
 	execute := executeValidate
+	argsValidator := cobra.MinimumNArgs(0)
+	preRun := func(cmd *cobra.Command, args []string) error {
+		diffCmdKongStateFile = args
+		if len(diffCmdKongStateFile) == 0 {
+			diffCmdKongStateFile = []string{"-"}
+		}
+		return preRunSilenceEventsFlag()
+	}
+
 	if deprecated {
+		use = "validate"
 		short = "[deprecated] use 'kong validate' instead"
 		execute = func(cmd *cobra.Command, args []string) error {
 			cprint.UpdatePrintf("Warning: 'deck validate' is DEPRECATED and will be removed in a future version. " +
 				"Use 'deck kong validate' instead.\n")
 			return executeValidate(cmd, args)
 		}
+		argsValidator = validateNoArgs
+		preRun = func(cmd *cobra.Command, args []string) error {
+			if len(diffCmdKongStateFile) == 0 {
+				return fmt.Errorf("a state file with Kong's configuration " +
+					"must be specified using `-s`/`--state` flag")
+			}
+			return preRunSilenceEventsFlag()
+		}
 	}
 
 	validateCmd := &cobra.Command{
-		Use:   "validate",
+		Use:   use,
 		Short: short,
 		Long: `The validate command reads the state file and ensures validity.
 It reads all the specified state files and reports YAML/JSON
@@ -96,22 +115,19 @@ and alerts if there are broken relationships, or missing links present.
 No communication takes places between decK and Kong during the execution of
 this command unless --online flag is used.
 `,
-		Args: validateNoArgs,
-		RunE: execute,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if len(validateCmdKongStateFile) == 0 {
-				return fmt.Errorf("a state file with Kong's configuration " +
-					"must be specified using -s/--state flag")
-			}
-			return nil
-		},
+		Args:    argsValidator,
+		RunE:    execute,
+		PreRunE: preRun,
 	}
+
 	validateCmd.Flags().BoolVar(&validateCmdRBACResourcesOnly, "rbac-resources-only",
 		false, "indicate that the state file(s) contains RBAC resources only (Kong Enterprise only).")
-	validateCmd.Flags().StringSliceVarP(&validateCmdKongStateFile,
-		"state", "s", []string{"kong.yaml"}, "file(s) containing Kong's configuration.\n"+
-			"This flag can be specified multiple times for multiple files.\n"+
-			"Use '-' to read from stdin.")
+	if deprecated {
+		validateCmd.Flags().StringSliceVarP(&validateCmdKongStateFile,
+			"state", "s", []string{"kong.yaml"}, "file(s) containing Kong's configuration.\n"+
+				"This flag can be specified multiple times for multiple files.\n"+
+				"Use '-' to read from stdin.")
+	}
 	validateCmd.Flags().BoolVar(&validateOnline, "online",
 		false, "perform validations against Kong API. When this flag is used, validation is done\n"+
 			"via communication with Kong. This increases the time for validation but catches \n"+
