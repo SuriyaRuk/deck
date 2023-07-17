@@ -53,9 +53,30 @@ It can be used to export, import, or sync entities to Kong.`,
 	}
 	cobra.OnInitialize(initConfig)
 
+	// global flags
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "",
 		"Config file (default is $HOME/.deck.yaml).")
 
+	rootCmd.PersistentFlags().Int("verbose", 0,
+		"Enable verbose logging levels\n"+
+			"Sets the verbosity level of log output (higher is more verbose).")
+	viper.BindPFlag("verbose",
+		rootCmd.PersistentFlags().Lookup("verbose"))
+
+	rootCmd.PersistentFlags().Bool("no-color", false,
+		"Disable colorized output")
+	viper.BindPFlag("no-color",
+		rootCmd.PersistentFlags().Lookup("no-color"))
+
+	rootCmd.PersistentFlags().Bool("analytics", true,
+		"Share anonymized data to help improve decK.\n"+
+			"Use `--analytics=false` to disable this.")
+	viper.BindPFlag("analytics",
+		rootCmd.PersistentFlags().Lookup("analytics"))
+
+	// TODO: everything below are online flags to be moved to the "kong" subcommand
+	// moving them now would break to top-level commands (sync, diff, etc) we still
+	// need for backward compatibility.
 	rootCmd.PersistentFlags().String("kong-addr", defaultKongURL,
 		"HTTP address of Kong's Admin API.\n"+
 			"This value can also be set using the environment variable DECK_KONG_ADDR\n"+
@@ -101,17 +122,6 @@ It can be used to export, import, or sync entities to Kong.`,
 	viper.BindPFlag("ca-cert-file",
 		rootCmd.PersistentFlags().Lookup("ca-cert-file"))
 
-	rootCmd.PersistentFlags().Int("verbose", 0,
-		"Enable verbose logging levels\n"+
-			"Sets the verbosity level of log output (higher is more verbose).")
-	viper.BindPFlag("verbose",
-		rootCmd.PersistentFlags().Lookup("verbose"))
-
-	rootCmd.PersistentFlags().Bool("no-color", false,
-		"Disable colorized output")
-	viper.BindPFlag("no-color",
-		rootCmd.PersistentFlags().Lookup("no-color"))
-
 	rootCmd.PersistentFlags().Bool("skip-workspace-crud", false,
 		"Skip API calls related to Workspaces (Kong Enterprise only).")
 	viper.BindPFlag("skip-workspace-crud",
@@ -123,12 +133,6 @@ It can be used to export, import, or sync entities to Kong.`,
 			"You may also need to pass in as header the User-Agent that was used to create the cookie-jar.")
 	viper.BindPFlag("kong-cookie-jar-path",
 		rootCmd.PersistentFlags().Lookup("kong-cookie-jar-path"))
-
-	rootCmd.PersistentFlags().Bool("analytics", true,
-		"Share anonymized data to help improve decK.\n"+
-			"Use `--analytics=false` to disable this.")
-	viper.BindPFlag("analytics",
-		rootCmd.PersistentFlags().Lookup("analytics"))
 
 	rootCmd.PersistentFlags().Int("timeout", 10,
 		"Set a request timeout for the client to connect with Kong (in seconds).")
