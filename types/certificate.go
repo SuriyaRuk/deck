@@ -31,9 +31,6 @@ func certificateFromStruct(arg crud.Event) *state.Certificate {
 func (s *certificateCRUD) Create(ctx context.Context, arg ...crud.Arg) (crud.Arg, error) {
 	event := crud.EventFromArg(arg[0])
 	certificate := certificateFromStruct(event)
-	if s.isKonnect {
-		certificate.SNIs = nil
-	}
 	createdCertificate, err := s.client.Certificates.Create(ctx, &certificate.Certificate)
 	if err != nil {
 		return nil, err
@@ -63,9 +60,6 @@ func (s *certificateCRUD) Update(ctx context.Context, arg ...crud.Arg) (crud.Arg
 	event := crud.EventFromArg(arg[0])
 	certificate := certificateFromStruct(event)
 
-	if s.isKonnect {
-		certificate.SNIs = nil
-	}
 	updatedCertificate, err := s.client.Certificates.Create(ctx, &certificate.Certificate)
 	if err != nil {
 		return nil, err
@@ -147,13 +141,6 @@ func (d *certificateDiffer) createUpdateCertificate(
 	certificateCopy := &state.Certificate{Certificate: *certificate.DeepCopy()}
 	currentCertificate, err := d.currentState.Certificates.Get(*certificate.ID)
 
-	if d.isKonnect {
-		certificateCopy.SNIs = nil
-		if currentCertificate != nil {
-			currentCertificate.SNIs = nil
-		}
-	}
-
 	if errors.Is(err, state.ErrNotFound) {
 		// certificate not present, create it
 		return &crud.Event{
@@ -177,6 +164,10 @@ func (d *certificateDiffer) createUpdateCertificate(
 		// To work around this issues, we set SNIs on certificates here using the
 		// current certificate's SNI list. If there are changes to the SNIs,
 		// subsequent actions on the SNI objects will handle those.
+
+		// This workaround is not needed for Konnect, as it does not support SNIs
+		// on certificates. If we leave the SNIs field empty, it will not delete
+		// any existing SNIs.
 		if !d.isKonnect {
 			currentSNIs, err := d.currentState.SNIs.GetAllByCertID(*currentCertificate.ID)
 			if err != nil {
