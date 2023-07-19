@@ -12,7 +12,8 @@ import (
 
 // certificateCRUD implements crud.Actions interface.
 type certificateCRUD struct {
-	client *kong.Client
+	client    *kong.Client
+	isKonnect bool
 }
 
 func certificateFromStruct(arg crud.Event) *state.Certificate {
@@ -70,6 +71,8 @@ type certificateDiffer struct {
 	kind crud.Kind
 
 	currentState, targetState *state.KongState
+
+	isKonnect bool
 }
 
 func (d *certificateDiffer) Deletes(handler func(crud.Event) error) error {
@@ -161,18 +164,24 @@ func (d *certificateDiffer) createUpdateCertificate(
 		// To work around this issues, we set SNIs on certificates here using the
 		// current certificate's SNI list. If there are changes to the SNIs,
 		// subsequent actions on the SNI objects will handle those.
-		currentSNIs, err := d.currentState.SNIs.GetAllByCertID(*currentCertificate.ID)
-		if err != nil {
-			return nil, fmt.Errorf("error looking up current certificate SNIs %q: %w",
-				certificate.FriendlyName(), err)
-		}
-		sniNames := make([]*string, 0)
-		for _, s := range currentSNIs {
-			sniNames = append(sniNames, s.Name)
-		}
 
-		certificateCopy.SNIs = sniNames
-		currentCertificate.SNIs = sniNames
+		// This workaround is not needed for Konnect, as it does not support SNIs
+		// on certificates. If we leave the SNIs field empty, it will not delete
+		// any existing SNIs.
+		if !d.isKonnect {
+			currentSNIs, err := d.currentState.SNIs.GetAllByCertID(*currentCertificate.ID)
+			if err != nil {
+				return nil, fmt.Errorf("error looking up current certificate SNIs %q: %w",
+					certificate.FriendlyName(), err)
+			}
+			sniNames := make([]*string, 0)
+			for _, s := range currentSNIs {
+				sniNames = append(sniNames, s.Name)
+			}
+
+			certificateCopy.SNIs = sniNames
+			currentCertificate.SNIs = sniNames
+		}
 		return &crud.Event{
 			Op:     crud.Update,
 			Kind:   d.kind,
