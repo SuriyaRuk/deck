@@ -115,7 +115,7 @@ can be converted into a 'kong-gateway-3.x' configuration file.`,
 		fmt.Sprintf("desired format of the output, allowed formats: %v", destinationFormats))
 	convertCmd.Flags().StringVar(&convertCmdInputFile, "input-file", fileInDefault,
 		"configuration file to be converted. Use `-` to read from stdin.")
-	convertCmd.Flags().StringVar(&convertCmdOutputFile, "output-file", fileOutDefault,
+	convertCmd.Flags().StringVarP(&convertCmdOutputFile, "output-file", "o", fileOutDefault,
 		"file to write configuration to after conversion. Use `-` to write to stdout.")
 	convertCmd.Flags().BoolVar(&convertCmdAssumeYes, "yes",
 		false, "assume `yes` to prompts and run non-interactively.")
