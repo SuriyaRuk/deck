@@ -36,10 +36,10 @@ func newDiffCmd(deprecated bool) *cobra.Command {
 
 	if deprecated {
 		use = "diff"
-		short = "[deprecated] use 'kong diff' instead"
+		short = "[deprecated] use 'gateway diff' instead"
 		execute = func(cmd *cobra.Command, args []string) error {
 			cprint.UpdatePrintf("Warning: 'deck diff' is DEPRECATED and will be removed in a future version. " +
-				"Use 'deck kong diff' instead.\n")
+				"Use 'deck gateway diff' instead.\n")
 			return executeDiff(cmd, args)
 		}
 		argsValidator = validateNoArgs

@@ -102,10 +102,10 @@ func newResetCmd(deprecated bool) *cobra.Command {
 	short := "Reset deletes all entities in Kong"
 	execute := executeReset
 	if deprecated {
-		short = "[deprecated] use 'kong reset' instead"
+		short = "[deprecated] use 'gateway reset' instead"
 		execute = func(cmd *cobra.Command, args []string) error {
 			cprint.UpdatePrintf("Warning: 'deck reset' is DEPRECATED and will be removed in a future version. " +
-				"Use 'deck kong reset' instead.\n")
+				"Use 'deck gateway reset' instead.\n")
 			return executeReset(cmd, args)
 		}
 	}

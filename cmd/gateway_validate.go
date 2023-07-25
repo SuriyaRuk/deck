@@ -94,7 +94,7 @@ and alerts if there are broken relationships, or missing links present.
 
 	if deprecated {
 		use = "validate"
-		short = "[deprecated] use 'kong validate' instead"
+		short = "[deprecated] use 'gateway validate' instead"
 		long = `The validate command reads the state file and ensures validity.
 It reads all the specified state files and reports YAML/JSON
 parsing issues. It also checks for foreign relationships
@@ -106,7 +106,7 @@ this command unless --online flag is used.
 
 		execute = func(cmd *cobra.Command, args []string) error {
 			cprint.UpdatePrintf("Warning: 'deck validate' is DEPRECATED and will be removed in a future version. " +
-				"Use 'deck kong validate' instead.\n")
+				"Use 'deck gateway validate' instead.\n")
 			return executeValidate(cmd, args)
 		}
 		argsValidator = validateNoArgs
@@ -128,7 +128,7 @@ this command unless --online flag is used.
 			short = short + " (locally)"
 			long = long + "No communication takes places between decK and Kong during the execution of\n" +
 				"this command. This is faster than the online validation, but catches fewer errors.\n" +
-				"For online validation see 'deck kong validate'.\n"
+				"For online validation see 'deck gateway validate'.\n"
 		}
 	}
 

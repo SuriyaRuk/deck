@@ -1,6 +1,3 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -9,13 +6,13 @@ import (
 
 //
 //
-// Define the CLI data for the kong sub-command
+// Define the CLI data for the gateway sub-command
 //
 //
 
 func newKongSubCmd() *cobra.Command {
 	kongSubCmd := &cobra.Command{
-		Use:   "kong [sub-command]...",
+		Use:   "gateway [sub-command]...",
 		Short: "Sub-command to host the decK network operations",
 		Long:  `Sub-command to host the decK network operations`,
 	}

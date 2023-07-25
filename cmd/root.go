@@ -74,7 +74,7 @@ It can be used to export, import, or sync entities to Kong.`,
 	viper.BindPFlag("analytics",
 		rootCmd.PersistentFlags().Lookup("analytics"))
 
-	// TODO: everything below are online flags to be moved to the "kong" subcommand
+	// TODO: everything below are online flags to be moved to the "gateway" subcommand
 	// moving them now would break to top-level commands (sync, diff, etc) we still
 	// need for backward compatibility.
 	rootCmd.PersistentFlags().String("kong-addr", defaultKongURL,

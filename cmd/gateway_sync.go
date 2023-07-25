@@ -37,10 +37,10 @@ func newSyncCmd(deprecated bool) *cobra.Command {
 
 	if deprecated {
 		use = "sync"
-		short = "[deprecated] use 'kong sync' instead"
+		short = "[deprecated] use 'gateway sync' instead"
 		execute = func(cmd *cobra.Command, args []string) error {
 			cprint.UpdatePrintf("Warning: 'deck sync' is DEPRECATED and will be removed in a future version. " +
-				"Use 'deck kong sync' instead.\n")
+				"Use 'deck gateway sync' instead.\n")
 			return executeSync(cmd, args)
 		}
 		argsValidator = validateNoArgs

@@ -14,6 +14,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const defaultFileOutName = "kong"
+
 var (
 	dumpCmdKongStateFile string
 	dumpCmdStateFormat   string
@@ -67,7 +69,7 @@ func executeDump(cmd *cobra.Command, _ []string) error {
 		if dumpWorkspace != "" {
 			return fmt.Errorf("workspace cannot be specified with --all-workspace flag")
 		}
-		if dumpCmdKongStateFile != "kong" {
+		if dumpCmdKongStateFile != defaultFileOutName {
 			return fmt.Errorf("output-file cannot be specified with --all-workspace flag")
 		}
 		workspaces, err := listWorkspaces(ctx, wsClient)
@@ -145,13 +147,13 @@ func newDumpCmd(deprecated bool) *cobra.Command {
 	execute := executeDump
 	fileOutDefault := "-"
 	if deprecated {
-		short = "[deprecated] use 'kong dump' instead"
+		short = "[deprecated] use 'gateway dump' instead"
 		execute = func(cmd *cobra.Command, args []string) error {
 			cprint.UpdatePrintf("Warning: 'deck dump' is DEPRECATED and will be removed in a future version. " +
-				"Use 'deck kong dump' instead.\n")
+				"Use 'deck gateway dump' instead.\n")
 			return executeDump(cmd, args)
 		}
-		fileOutDefault = "kong"
+		fileOutDefault = defaultFileOutName
 	}
 
 	dumpCmd := &cobra.Command{
