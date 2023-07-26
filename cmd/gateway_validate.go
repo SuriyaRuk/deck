@@ -94,7 +94,7 @@ and alerts if there are broken relationships, or missing links present.
 
 	if deprecated {
 		use = "validate"
-		short = "[deprecated] use 'gateway validate' instead"
+		short = "[deprecated] use 'gateway validate' or 'file validate' instead"
 		long = `The validate command reads the state file and ensures validity.
 It reads all the specified state files and reports YAML/JSON
 parsing issues. It also checks for foreign relationships

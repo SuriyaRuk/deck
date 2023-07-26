@@ -28,9 +28,9 @@ func newSyncCmd(deprecated bool) *cobra.Command {
 	execute := executeSync
 	argsValidator := cobra.MinimumNArgs(0)
 	preRun := func(cmd *cobra.Command, args []string) error {
-		diffCmdKongStateFile = args
-		if len(diffCmdKongStateFile) == 0 {
-			diffCmdKongStateFile = []string{"-"}
+		syncCmdKongStateFile = args
+		if len(syncCmdKongStateFile) == 0 {
+			syncCmdKongStateFile = []string{"-"}
 		}
 		return preRunSilenceEventsFlag()
 	}
@@ -45,7 +45,7 @@ func newSyncCmd(deprecated bool) *cobra.Command {
 		}
 		argsValidator = validateNoArgs
 		preRun = func(cmd *cobra.Command, args []string) error {
-			if len(diffCmdKongStateFile) == 0 {
+			if len(syncCmdKongStateFile) == 0 {
 				return fmt.Errorf("a state file with Kong's configuration " +
 					"must be specified using `-s`/`--state` flag")
 			}
