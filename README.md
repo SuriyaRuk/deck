@@ -1,3 +1,6 @@
+## Run
+go run . --help instead of deck --help
+
 # decK: Declarative configuration for Kong
 
 decK provides declarative configuration and drift detection for Kong.
