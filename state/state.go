@@ -29,6 +29,7 @@ type KongState struct {
 	ConsumerGroupPlugins   *ConsumerGroupPluginsCollection
 
 	KeyAuths                *KeyAuthsCollection
+	LimitKeyQuotas          *LimitKeyQuotasCollection
 	HMACAuths               *HMACAuthsCollection
 	JWTAuths                *JWTAuthsCollection
 	BasicAuths              *BasicAuthsCollection
@@ -48,6 +49,7 @@ type KongState struct {
 func NewKongState() (*KongState, error) {
 	// TODO FIXME clean up the mess
 	keyAuthTemp := newKeyAuthsCollection(collection{})
+	limitKeyQuotaTemp := newLimitKeyQuotasCollection(collection{})
 	hmacAuthTemp := newHMACAuthsCollection(collection{})
 	basicAuthTemp := newBasicAuthsCollection(collection{})
 	jwtAuthTemp := newJWTAuthsCollection(collection{})
@@ -73,6 +75,7 @@ func NewKongState() (*KongState, error) {
 			vaultTableName:                  vaultTableSchema,
 
 			keyAuthTemp.TableName():     keyAuthTemp.Schema(),
+			limitKeyQuotaTemp.TableName():     limitKeyQuotaTemp.Schema(),
 			hmacAuthTemp.TableName():    hmacAuthTemp.Schema(),
 			basicAuthTemp.TableName():   basicAuthTemp.Schema(),
 			jwtAuthTemp.TableName():     jwtAuthTemp.Schema(),
@@ -114,6 +117,7 @@ func NewKongState() (*KongState, error) {
 	state.Vaults = (*VaultsCollection)(&state.common)
 
 	state.KeyAuths = newKeyAuthsCollection(state.common)
+	state.LimitKeyQuotas = newLimitKeyQuotasCollection(state.common)
 	state.HMACAuths = newHMACAuthsCollection(state.common)
 	state.BasicAuths = newBasicAuthsCollection(state.common)
 	state.JWTAuths = newJWTAuthsCollection(state.common)

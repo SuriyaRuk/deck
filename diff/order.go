@@ -47,7 +47,7 @@ var dependencyOrder = [][]types.EntityType{
 		types.Service,
 		types.Upstream,
 
-		types.KeyAuth, types.HMACAuth, types.JWTAuth,
+		types.KeyAuth, types.LimitKeyQuota, types.HMACAuth, types.JWTAuth,
 		types.BasicAuth, types.OAuth2Cred, types.ACLGroup,
 		types.MTLSAuth,
 	},

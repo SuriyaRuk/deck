@@ -159,6 +159,9 @@ func (v *Validator) Validate(kongVersion semver.Version) []error {
 	if err := v.entities(v.state.KeyAuths, "keyauth_credentials"); err != nil {
 		allErr = append(allErr, err...)
 	}
+	if err := v.entities(v.state.LimitKeyQuotas, "limit_key_quota_credentials"); err != nil {
+		allErr = append(allErr, err...)
+	}
 	if err := v.entities(v.state.Oauth2Creds, "oauth2_credentials"); err != nil {
 		allErr = append(allErr, err...)
 	}

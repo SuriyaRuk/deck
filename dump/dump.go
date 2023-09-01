@@ -105,6 +105,14 @@ func getConsumerConfiguration(ctx context.Context, group *errgroup.Group,
 		state.KeyAuths = keyAuths
 		return nil
 	})
+	group.Go(func() error {
+		limitKeyQuotas, err := GetAllLimitKeyQuotas(ctx, client, config.SelectorTags)
+		if err != nil {
+			return fmt.Errorf("limit-key-quota: %w", err)
+		}
+		state.LimitKeyQuotas = limitKeyQuotas
+		return nil
+	})
 
 	group.Go(func() error {
 		hmacAuths, err := GetAllHMACAuths(ctx, client, config.SelectorTags)
@@ -619,6 +627,32 @@ func GetAllVaults(
 	return vaults, nil
 }
 
+// GetAllLimitKeyQuotas queries Kong for all key-auth credentials using client.
+func GetAllLimitKeyQuotas(ctx context.Context,
+	client *kong.Client, tags []string,
+) ([]*kong.LimitKeyQuota, error) {
+	var limitKeyQuotas []*kong.LimitKeyQuota
+	opt := newOpt(tags)
+
+	for {
+		s, nextopt, err := client.LimitKeyQuotas.List(ctx, opt)
+		if kong.IsNotFoundErr(err) {
+			return limitKeyQuotas, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		limitKeyQuotas = append(limitKeyQuotas, s...)
+		if nextopt == nil {
+			break
+		}
+		opt = nextopt
+	}
+	return limitKeyQuotas, nil
+}
 // GetAllKeyAuths queries Kong for all key-auth credentials using client.
 func GetAllKeyAuths(ctx context.Context,
 	client *kong.Client, tags []string,

@@ -196,6 +196,9 @@ func ensureGetAllMethods() error {
 	if _, err := utils.CallGetAll(dummyEmptyState.KeyAuths); err != nil {
 		return err
 	}
+	if _, err := utils.CallGetAll(dummyEmptyState.LimitKeyQuotas); err != nil {
+		return err
+	}
 	if _, err := utils.CallGetAll(dummyEmptyState.Oauth2Creds); err != nil {
 		return err
 	}

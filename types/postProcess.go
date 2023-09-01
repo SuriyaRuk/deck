@@ -246,6 +246,21 @@ func (crud *consumerGroupPluginPostAction) Update(_ context.Context, args ...cru
 	return nil, crud.currentState.ConsumerGroupPlugins.Update(*args[0].(*state.ConsumerGroupPlugin))
 }
 
+type limitKeyQuotaPostAction struct {
+	currentState *state.KongState
+}
+
+func (crud *limitKeyQuotaPostAction) Create(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.LimitKeyQuotas.Add(*args[0].(*state.LimitKeyQuota))
+}
+
+func (crud *limitKeyQuotaPostAction) Delete(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.LimitKeyQuotas.Delete(*((args[0].(*state.LimitKeyQuota)).ID))
+}
+
+func (crud *limitKeyQuotaPostAction) Update(_ context.Context, args ...crud.Arg) (crud.Arg, error) {
+	return nil, crud.currentState.LimitKeyQuotas.Update(*args[0].(*state.LimitKeyQuota))
+}
 type keyAuthPostAction struct {
 	currentState *state.KongState
 }

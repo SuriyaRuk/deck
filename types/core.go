@@ -102,6 +102,8 @@ const (
 	MTLSAuth EntityType = "mtls-auth"
 	// KeyAuth identifies aKeyAuth in Kong.
 	KeyAuth EntityType = "key-auth"
+	// LimitKeyQuota identifies aLimitKeyQuota in Kong.
+	LimitKeyQuota EntityType = "limit-key-quota"
 	// OAuth2Cred identifies a OAuth2Cred in Kong.
 	OAuth2Cred EntityType = "oauth2-cred" //nolint:gosec
 
@@ -435,6 +437,21 @@ func NewEntity(t EntityType, opts EntityOpts) (Entity, error) {
 			},
 			differ: &basicAuthDiffer{
 				kind:         entityTypeToKind(BasicAuth),
+				currentState: opts.CurrentState,
+				targetState:  opts.TargetState,
+			},
+		}, nil
+	case LimitKeyQuota:
+		return entityImpl{
+			typ: LimitKeyQuota,
+			crudActions: &limitKeyQuotaCRUD{
+				client: opts.KongClient,
+			},
+			postProcessActions: &limitKeyQuotaPostAction{
+				currentState: opts.CurrentState,
+			},
+			differ: &limitKeyQuotaDiffer{
+				kind:         entityTypeToKind(LimitKeyQuota),
 				currentState: opts.CurrentState,
 				targetState:  opts.TargetState,
 			},

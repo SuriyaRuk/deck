@@ -592,6 +592,17 @@ func populateConsumers(kongState *state.KongState, file *Content,
 			return compareOrder(c.Plugins[i], c.Plugins[j])
 		})
 		// custom-entities associated with Consumer
+		limitKeyQuotas, err := kongState.LimitKeyQuotas.GetAllByConsumerID(*c.ID)
+		if err != nil {
+			return err
+		}
+		for _, k := range limitKeyQuotas {
+			utils.ZeroOutID(k, k.Key, config.WithID)
+			utils.ZeroOutTimestamps(k)
+			utils.MustRemoveTags(k, config.SelectTags)
+			k.Consumer = nil
+			c.LimitKeyQuotas = append(c.LimitKeyQuotas, &k.LimitKeyQuota)
+		}
 		keyAuths, err := kongState.KeyAuths.GetAllByConsumerID(*c.ID)
 		if err != nil {
 			return err

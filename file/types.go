@@ -506,6 +506,7 @@ type FConsumer struct {
 	kong.Consumer `yaml:",inline,omitempty"`
 	Plugins       []*FPlugin               `json:"plugins,omitempty" yaml:",omitempty"`
 	KeyAuths      []*kong.KeyAuth          `json:"keyauth_credentials,omitempty" yaml:"keyauth_credentials,omitempty"`
+	LimitKeyQuotas []*kong.LimitKeyQuota   `json:"limit_key_quota_credentials,omitempty" yaml:"limit_key_quota_credentials,omitempty"`
 	HMACAuths     []*kong.HMACAuth         `json:"hmacauth_credentials,omitempty" yaml:"hmacauth_credentials,omitempty"`
 	JWTAuths      []*kong.JWTAuth          `json:"jwt_secrets,omitempty" yaml:"jwt_secrets,omitempty"`
 	BasicAuths    []*kong.BasicAuth        `json:"basicauth_credentials,omitempty" yaml:"basicauth_credentials,omitempty"`

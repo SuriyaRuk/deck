@@ -82,6 +82,7 @@ func main() {
 		"secret",
 	}
 	schema.Definitions["KeyAuth"].Required = []string{"key"}
+	schema.Definitions["LimitKeyQuota"].Required = []string{"key", "limit_key_quota"}
 	schema.Definitions["Oauth2Credential"].Required = []string{
 		"name",
 		"client_id", "client_secret",

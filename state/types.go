@@ -807,10 +807,10 @@ func (c1 *ConsumerGroupPlugin) EqualWithOpts(c2 *ConsumerGroupPlugin,
 	return reflect.DeepEqual(c1Copy, c2Copy)
 }
 
-// KeyAuth represents a key-auth credential in Kong.
-// It adds some helper methods along with Meta to the original KeyAuth object.
-type KeyAuth struct {
-	kong.KeyAuth `yaml:",inline"`
+// LimitKeyQuota represents a key-auth credential in Kong.
+// It adds some helper methods along with Meta to the original LimitKeyQuota object.
+type LimitKeyQuota struct {
+	kong.LimitKeyQuota `yaml:",inline"`
 	Meta
 }
 
@@ -823,6 +823,93 @@ func stripKey(key string) string {
 	}
 	return key[len(key)-keyIdentifierLength:]
 }
+
+// Console returns an entity's identity in a human
+// readable string.
+func (k1 *LimitKeyQuota) Console() string {
+	return stripKey(*k1.Key) + forConsumerString(k1.Consumer)
+}
+
+// Equal returns true if k1 and k2 are equal.
+func (k1 *LimitKeyQuota) Equal(k2 *LimitKeyQuota) bool {
+	return k1.EqualWithOpts(k2, false, false, false)
+}
+
+// EqualWithOpts returns true if k1 and k2 are equal.
+// If ignoreID is set to true, IDs will be ignored while comparison.
+// If ignoreTS is set to true, timestamp fields will be ignored.
+func (k1 *LimitKeyQuota) EqualWithOpts(k2 *LimitKeyQuota, ignoreID,
+	ignoreTS, ignoreForeign bool,
+) bool {
+	k1Copy := k1.LimitKeyQuota.DeepCopy()
+	k2Copy := k2.LimitKeyQuota.DeepCopy()
+
+	if len(k1Copy.Tags) == 0 {
+		k1Copy.Tags = nil
+	}
+	if len(k2Copy.Tags) == 0 {
+		k2Copy.Tags = nil
+	}
+
+	sort.Slice(k1Copy.Tags, func(i, j int) bool { return *(k1Copy.Tags[i]) < *(k1Copy.Tags[j]) })
+	sort.Slice(k2Copy.Tags, func(i, j int) bool { return *(k2Copy.Tags[i]) < *(k2Copy.Tags[j]) })
+
+	if ignoreID {
+		k1Copy.ID = nil
+		k2Copy.ID = nil
+	}
+	if ignoreTS {
+		k1Copy.CreatedAt = nil
+		k2Copy.CreatedAt = nil
+	}
+	if ignoreForeign {
+		k1Copy.Consumer = nil
+		k2Copy.Consumer = nil
+	}
+	if k1Copy.Consumer != nil {
+		k1Copy.Consumer.Username = nil
+	}
+	if k2Copy.Consumer != nil {
+		k2Copy.Consumer.Username = nil
+	}
+	return reflect.DeepEqual(k1Copy, k2Copy)
+}
+
+// GetID returns ID.
+// If ID is empty, it returns an empty string.
+func (k1 *LimitKeyQuota) GetID() string {
+	if k1.ID == nil {
+		return ""
+	}
+	return *k1.ID
+}
+
+// GetID2 returns the endpoint key of the entity,
+// the Key field for LimitKeyQuota.
+func (k1 *LimitKeyQuota) GetID2() string {
+	if k1.Key == nil {
+		return ""
+	}
+	return *k1.Key
+}
+
+// GetConsumer returns the credential's Consumer's ID.
+// If Consumer's ID is empty, it returns an empty string.
+func (k1 *LimitKeyQuota) GetConsumer() string {
+	if k1.Consumer == nil || k1.Consumer.ID == nil {
+		return ""
+	}
+	return *k1.Consumer.ID
+}
+// KeyAuth represents a key-auth credential in Kong.
+// It adds some helper methods along with Meta to the original KeyAuth object.
+type KeyAuth struct {
+	kong.KeyAuth `yaml:",inline"`
+	Meta
+}
+
+// stripKey returns the last 5 characters of key.
+// If key is less than or equal to 5 characters, then the key is returned as is.
 
 // Console returns an entity's identity in a human
 // readable string.

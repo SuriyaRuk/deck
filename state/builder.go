@@ -132,6 +132,20 @@ func buildKong(kongState *KongState, raw *utils.KongRawState) error {
 			}
 		}
 	}
+	for _, cred := range raw.LimitKeyQuotas {
+		ok, c, err := ensureConsumer(kongState, *cred.Consumer.ID)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			continue
+		}
+		cred.Consumer = c
+		err = kongState.LimitKeyQuotas.Add(LimitKeyQuota{LimitKeyQuota: *cred})
+		if err != nil {
+			return fmt.Errorf("inserting limit-key-quota into state: %w", err)
+		}
+	}
 	for _, cred := range raw.KeyAuths {
 		ok, c, err := ensureConsumer(kongState, *cred.Consumer.ID)
 		if err != nil {

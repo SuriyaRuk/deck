@@ -342,6 +342,15 @@ func (b *stateBuilder) consumers() {
 			b.err = err
 			return
 		}
+		var limitKeyQuotas []kong.LimitKeyQuota
+		for _, cred := range c.LimitKeyQuotas {
+			cred.Consumer = utils.GetConsumerReference(c.Consumer)
+			limitKeyQuotas = append(limitKeyQuotas, *cred)
+		}
+		if err := b.ingestLimitKeyQuotas(limitKeyQuotas); err != nil {
+			b.err = err
+			return
+		}
 
 		var basicAuths []kong.BasicAuth
 		for _, cred := range c.BasicAuths {
@@ -434,6 +443,26 @@ func (b *stateBuilder) ingestIntoConsumerGroup(consumer FConsumer) error {
 	return nil
 }
 
+func (b *stateBuilder) ingestLimitKeyQuotas(creds []kong.LimitKeyQuota) error {
+	for _, cred := range creds {
+		cred := cred
+		if utils.Empty(cred.ID) {
+			existingCred, err := b.currentState.LimitKeyQuotas.Get(*cred.Key)
+			if errors.Is(err, state.ErrNotFound) {
+				cred.ID = uuid()
+			} else if err != nil {
+				return err
+			} else {
+				cred.ID = kong.String(*existingCred.ID)
+			}
+		}
+		if b.kongVersion.GTE(utils.Kong140Version) {
+			utils.MustMergeTags(&cred, b.selectTags)
+		}
+		b.rawState.LimitKeyQuotas = append(b.rawState.LimitKeyQuotas, &cred)
+	}
+	return nil
+}
 func (b *stateBuilder) ingestKeyAuths(creds []kong.KeyAuth) error {
 	for _, cred := range creds {
 		cred := cred

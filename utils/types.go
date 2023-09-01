@@ -45,6 +45,7 @@ type KongRawState struct {
 	Vaults []*kong.Vault
 
 	KeyAuths    []*kong.KeyAuth
+	LimitKeyQuotas    []*kong.LimitKeyQuota
 	HMACAuths   []*kong.HMACAuth
 	JWTAuths    []*kong.JWTAuth
 	BasicAuths  []*kong.BasicAuth
